@@ -1,0 +1,17 @@
+---
+MODEL:
+  LOAD_PATH: ''
+  TYPE: CLASSIFIER
+
+OPTIMIZER:
+  NAME: SGD
+  LEARNING_RATE: 0.01
+
+HOOKBASE: [LoggerHook, EvalHook]
+HOOKBASE_CONFIG:
+  LoggerHook:
+    LOGGER_FILE: "logger.json"
+TRAINER:
+  NUM_EPOCHS: 5
+
+

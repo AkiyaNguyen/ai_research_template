@@ -1,0 +1,24 @@
+
+## load yaml
+import yaml
+
+class Config:
+    def __init__(self, config_file: str = 'detail_config/simple_MNIST_training.yaml'):
+        self.config_file = config_file
+        self.config = self._load_config()
+    
+    def _load_config(self):
+        with open(self.config_file, 'r') as f:
+            self.config = yaml.load(f, Loader=yaml.FullLoader)
+        return self.config
+    
+    def get(self, key: str):
+        key_list = key.split('.')
+        result = self.config
+        for key in key_list:
+            try:
+                result = result[key]
+            except KeyError:
+                return None
+        return result
+
