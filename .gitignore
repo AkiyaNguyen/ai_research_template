@@ -2,7 +2,6 @@ __pycache__/
 **/__pycache__/
 
 data/
-logger.json
-mlruns/
-mlflow.db
 venv/
+scripts/
+

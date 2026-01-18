@@ -1,12 +1,11 @@
 from .config import Config
-import extend_module
 import torch
 import torch.nn as nn
 from typing import Optional, List
-from extend_module import Classifier
-from Hook import HookBase, LoggerHook, EvalHook, MLFlowLoggerHook
+from engine.nnModuleUtil import Classifier, extend_module
+from engine.Hook import HookBase, LoggerHook, EvalHook, MLFlowLoggerHook
 from torch.utils.data import DataLoader
-from Trainer import Trainer
+from engine.Trainer import Trainer
 
 
 def build_model_with_config(config: Config, pre_defined_model: Optional[nn.Module]):
@@ -16,6 +15,8 @@ def build_model_with_config(config: Config, pre_defined_model: Optional[nn.Modul
 
         raise ValueError("Model is not defined and config does not provide a path to load model")
     
+    assert pre_defined_model is not None, "Pre-defined model is None" ## trick the type checker
+
     model_type = config.get('MODEL.TYPE')
     if model_type == 'CLASSIFIER':
         return Classifier(model=pre_defined_model)
@@ -59,6 +60,9 @@ def build_train_loader_with_config(config: Config):
 def build_optimizer_with_config(config: Config, model: nn.Module):
     optimizer_name = config.get('OPTIMIZER.NAME')
     learning_rate = config.get('OPTIMIZER.LEARNING_RATE')
+
+    assert learning_rate is not None
+
     if optimizer_name == "SGD":
         return torch.optim.SGD(model.parameters(), lr=learning_rate)
     elif optimizer_name == "Adam":

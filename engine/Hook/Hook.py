@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, List
 import mlflow
 
 if TYPE_CHECKING:
-    from Trainer import Trainer
+    from engine.Trainer import Trainer
     
 
 class HookBase:
@@ -51,17 +51,14 @@ class EvalHook(HookBase):
         self.trainer.info_storage.add_to_latest_info(result)
 
 class MLFlowLoggerHook(HookBase):
-    def __init__(self, trainer: Trainer, logging_fields: List[str], **kwargs: Any) -> None:
+    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], **kwargs: Any) -> None:
         super().__init__(trainer)
         self.logging_fields = logging_fields
-        if self.logging_fields is None:
-            self.logging_fields = ['val_loss', 'val_accuracy', 'loss']
+        
     def before_train(self) -> None:
         mlflow.start_run()
     def after_train(self) -> None:
         mlflow.end_run()
-
-
     def after_train_epoch(self) -> None:
         for key, value in self.trainer.info_storage.latest_info().items():
             if key in self.logging_fields:
