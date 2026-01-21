@@ -1,9 +1,9 @@
 
 import typing
-from engine.nnModuleUtil import extend_module
+from ..nnModuleUtil import extend_module
 import torch
 from torch.utils.data import DataLoader
-from engine.Hook import HookBase
+from ..Hook import HookBase
 
 class InfoStorage:
     def __init__(self) -> None:

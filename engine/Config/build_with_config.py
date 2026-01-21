@@ -2,10 +2,10 @@ from .config import Config
 import torch
 import torch.nn as nn
 from typing import Optional, List
-from engine.nnModuleUtil import Classifier, extend_module
-from engine.Hook import HookBase, LoggerHook, EvalHook, MLFlowLoggerHook
+from ..nnModuleUtil import Classifier, extend_module
+from ..Hook import HookBase, LoggerHook, EvalHook, MLFlowLoggerHook
 from torch.utils.data import DataLoader
-from engine.Trainer import Trainer
+from ..Trainer import Trainer
 
 
 def build_model_with_config(config: Config, pre_defined_model: Optional[nn.Module]):
