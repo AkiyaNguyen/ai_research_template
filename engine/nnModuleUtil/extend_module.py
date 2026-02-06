@@ -52,8 +52,9 @@ class Classifier(extend_module):
             for batch in test_data_loader:
                 X, Y = batch
                 Y_hat = self(X)
-                loss = self.loss_function(Y_hat, Y)
-                total_loss += loss.item() * X.size(0)
+                loss_dict = self.loss_function(Y_hat, Y)
+                loss = loss_dict['loss'].item()
+                total_loss += loss * X.size(0)
                 _, predicted = torch.max(Y_hat, 1)
                 total_correct += (predicted == Y).sum().item()
                 total_samples += X.size(0)
