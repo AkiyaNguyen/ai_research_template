@@ -34,5 +34,3 @@ def register_build_with_config(config_class: type[Config]):
         setattr(config_class, func.__name__, func)
         return func
     return decorator
-
-from . import build_with_config
