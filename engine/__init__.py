@@ -1,3 +1,3 @@
-from . import Trainer, Hook, nnModuleUtil, Config, util
+from . import Trainer, Hook, nnModuleUtil, util, Config
 
-__all__ = ['Trainer', 'Hook', 'nnModuleUtil', 'Config', 'util']
+__all__ = ['Trainer', 'Hook', 'nnModuleUtil', 'util', 'Config']

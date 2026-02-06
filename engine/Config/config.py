@@ -23,9 +23,16 @@ class Config:
                 return fallback
         return result
 
+    # Stub methods - overwritten by @register_build_with_config when build_with_config loads
+    def build_model_with_config(self, pre_defined_model): ...
+    def build_train_loader_with_config(self): ...
+    def build_optimizer_with_config(self, model): ...
+    def build_trainer_with_config(self, model, train_data_loader, optimizer): ...
+
 def register_build_with_config(config_class: type[Config]):
     def decorator(func):
         setattr(config_class, func.__name__, func)
         return func
     return decorator
 
+from . import build_with_config
