@@ -1,4 +1,4 @@
-from .config import Config
+from .config import Config, register_build_with_config
 import torch
 import torch.nn as nn
 from typing import Optional, List
@@ -7,25 +7,26 @@ from ..Hook import HookBase, LoggerHook, EvalHook, MLFlowLoggerHook
 from torch.utils.data import DataLoader
 from ..Trainer import Trainer
 
-
-def build_model_with_config(config: Config, pre_defined_model: Optional[nn.Module]):
+@register_build_with_config(Config)
+def build_model_with_config(self, pre_defined_model: Optional[nn.Module]):
     if pre_defined_model is None and \
-        (config.get('MODEL.LOAD_PATH') is None or \
-        config.get('MODEL.LOAD_PATH') == ''): # 
+        (self.get('MODEL.LOAD_PATH') is None or \
+        self.get('MODEL.LOAD_PATH') == ''): # 
 
         raise ValueError("Model is not defined and config does not provide a path to load model")
     
     assert pre_defined_model is not None, "Pre-defined model is None" ## trick the type checker
 
-    model_type = config.get('MODEL.TYPE')
+    model_type = self.get('MODEL.TYPE')
     if model_type == 'CLASSIFIER':
         return Classifier(model=pre_defined_model)
     else:
         raise ValueError(f"Invalid model type: {model_type}")
 
-def build_trainer_with_config(config: Config, model: extend_module, train_data_loader: DataLoader, optimizer: torch.optim.Optimizer) -> Trainer:
+@register_build_with_config(Config)
+def build_trainer_with_config(self, model: extend_module, train_data_loader: DataLoader, optimizer: torch.optim.Optimizer) -> Trainer:
     ## not in the general case, but for now it is ok
-    num_epochs = config.get('TRAINER.NUM_EPOCHS')
+    num_epochs = self.get('TRAINER.NUM_EPOCHS')
     if num_epochs is None:
         raise ValueError("Number of epochs is not set")
     return Trainer(model, train_data_loader, optimizer, num_epochs)
@@ -53,13 +54,15 @@ class HookBuilder:
         return hook_class(self.trainer, **hook_kwargs)
 
 ## build dataset with config
-def build_train_loader_with_config(config: Config):
+@register_build_with_config(Config)
+def build_train_loader_with_config(self):
     pass
 
 ## build optimizer with config
-def build_optimizer_with_config(config: Config, model: nn.Module):
-    optimizer_name = config.get('OPTIMIZER.NAME')
-    learning_rate = config.get('OPTIMIZER.LEARNING_RATE')
+@register_build_with_config(Config)
+def build_optimizer_with_config(self, model: nn.Module):
+    optimizer_name = self.get('OPTIMIZER.NAME')
+    learning_rate = self.get('OPTIMIZER.LEARNING_RATE')
 
     assert learning_rate is not None
 

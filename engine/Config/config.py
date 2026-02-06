@@ -23,3 +23,9 @@ class Config:
                 return fallback
         return result
 
+def register_build_with_config(config_class: type[Config]):
+    def decorator(func):
+        setattr(config_class, func.__name__, func)
+        return func
+    return decorator
+
