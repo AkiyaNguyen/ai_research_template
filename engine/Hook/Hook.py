@@ -31,8 +31,8 @@ class LoggerHook(HookBase):
         if self.logger_file is None:
             raise ValueError("Logger file is not set")
     def before_train_epoch(self) -> None:
-        self.trainer.info_storage.add_empty_info()
-
+        # self.trainer.info_storage.add_empty_info()
+        pass
     def after_train_epoch(self) -> None:
         pass
 

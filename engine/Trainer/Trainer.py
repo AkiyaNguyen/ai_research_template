@@ -4,6 +4,7 @@ from ..nnModuleUtil import extend_module
 import torch
 from torch.utils.data import DataLoader
 from ..Hook import HookBase
+from tqdm import tqdm
 
 class InfoStorage:
     def __init__(self) -> None:
@@ -34,10 +35,14 @@ class Trainer:
 
     def train(self) -> None:
         self.model.train()
+        
+        self.info_storage.add_empty_info()
         for hook in self.hook:
             hook.before_train()
 
-        while self.current_epoch < self.num_epochs:
+        start_epoch = self.current_epoch
+        for _ in tqdm(range(start_epoch, self.num_epochs)):
+        # while self.current_epoch < self.num_epochs:
             for hook in self.hook:
                 hook.before_train_epoch()
 
