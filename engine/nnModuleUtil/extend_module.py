@@ -24,12 +24,16 @@ class Classifier(extend_module):
     def __init__(self, model: nn.Module, loss_function: typing.Callable = nn.CrossEntropyLoss()):
         super(Classifier, self).__init__(model)
         self.config_loss(loss_function)
+        self.device = next(self.model.parameters()).device
 
     def compute_loss(self, batch):
         """
         Simple loss for classification task
         """
         X, Y = batch
+        X = X.to(self.device)
+        Y = Y.to(self.device)
+
         Y_hat = self(X)
         loss = self.loss_function(Y_hat, Y)
 
@@ -51,6 +55,8 @@ class Classifier(extend_module):
         with torch.no_grad():
             for batch in test_data_loader:
                 X, Y = batch
+                X = X.to(self.device)
+                Y = Y.to(self.device)
                 Y_hat = self(X)
                 loss_dict = self.loss_function(Y_hat, Y)
                 loss = loss_dict['loss']
