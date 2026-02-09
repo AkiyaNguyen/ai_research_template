@@ -17,6 +17,8 @@ class InfoStorage:
     def add_empty_info(self) -> None:
         self.info_storage.append({})
     def latest_info(self) -> dict:
+        if len(self.info_storage) == 0:
+            raise ValueError("Info storage is empty")
         return self.info_storage[-1]
     def all_info(self) -> typing.List[dict]:
         return self.info_storage
