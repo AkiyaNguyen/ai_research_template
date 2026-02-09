@@ -72,14 +72,12 @@ class MLFlowLoggerHook(HookBase):
         check if the key is in the logging_fields or 
         """
         return any(fnmatch.fnmatch(query, field) for field in self.logging_fields)
-        
     def before_train(self) -> None:
         mlflow.start_run()
     def after_train(self) -> None:
         mlflow.end_run()
-    
     def after_train_epoch(self) -> None:
         for key, value in self.trainer.info_storage.latest_info().items():
-            if self.found_in_logging_fields(key):
+            if key in self.logging_fields:
                 mlflow.log_metric(key, value, step=self.trainer.current_epoch)
         
