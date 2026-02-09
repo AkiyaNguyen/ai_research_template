@@ -36,13 +36,15 @@ class Trainer:
     def train(self) -> None:
         self.model.train()
         
-        self.info_storage.add_empty_info()
         for hook in self.hook:
             hook.before_train()
 
         start_epoch = self.current_epoch
         for _ in tqdm(range(start_epoch, self.num_epochs)):
         # while self.current_epoch < self.num_epochs:
+            
+            self.info_storage.add_empty_info()
+              
             for hook in self.hook:
                 hook.before_train_epoch()
 
