@@ -24,16 +24,16 @@ class Classifier(extend_module):
     def __init__(self, model: nn.Module, loss_function: typing.Callable = nn.CrossEntropyLoss()):
         super(Classifier, self).__init__(model)
         self.config_loss(loss_function)
-        self.device = next(self.model.parameters()).device
 
     def compute_loss(self, batch):
         """
         Simple loss for classification task
         """
         X, Y = batch
-        X = X.to(self.device)
-        Y = Y.to(self.device)
-
+        device = next(self.model.parameters()).device
+        X = X.to(device)
+        Y = Y.to(device)
+        
         Y_hat = self(X)
         loss = self.loss_function(Y_hat, Y)
 
