@@ -32,6 +32,12 @@ class Trainer:
         self.info_storage: InfoStorage = InfoStorage()
         self.num_epochs = num_epochs
         self.current_epoch = 0
+        
+        self._stop_signal = False
+
+    def stop_training(self) -> None:
+        self._stop_signal = True
+
     def _register_hook(self, hook: HookBase) -> None: 
         self.hook.append(hook)
 
@@ -43,8 +49,6 @@ class Trainer:
 
         start_epoch = self.current_epoch
         for _ in tqdm(range(start_epoch, self.num_epochs)):
-        # while self.current_epoch < self.num_epochs:
-            
             self.info_storage.add_empty_info()
               
             for hook in self.hook:
@@ -54,6 +58,10 @@ class Trainer:
 
             for hook in self.hook:
                 hook.after_train_epoch()
+
+            if self._stop_signal:
+                break
+
             self.current_epoch += 1
             
         for hook in self.hook:
