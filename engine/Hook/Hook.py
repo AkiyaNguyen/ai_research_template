@@ -63,9 +63,10 @@ class EvalHook(HookBase):
         self.trainer.info_storage.add_to_latest_info(result)
 
 class MLFlowLoggerHook(HookBase):
-    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], **kwargs: Any) -> None:
+    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], experiment_name: str | None = None, **kwargs: Any) -> None:
         super().__init__(trainer)
         self.logging_fields = logging_fields
+        self.name = experiment_name
     
     def found_in_logging_fields(self, query: str) -> bool:
         """
@@ -73,11 +74,15 @@ class MLFlowLoggerHook(HookBase):
         """
         return any(fnmatch.fnmatch(query, field) for field in self.logging_fields)
     def before_train(self) -> None:
+        if self.name is not None:
+            mlflow.set_experiment(self.name)
+            print(f"experiment set to {self.name}")
         mlflow.start_run()
     def after_train(self) -> None:
         mlflow.end_run()
     def after_train_epoch(self) -> None:
+
         for key, value in self.trainer.info_storage.latest_info().items():
-            if key in self.logging_fields:
+            if self.found_in_logging_fields(key):
                 mlflow.log_metric(key, value, step=self.trainer.current_epoch)
         
