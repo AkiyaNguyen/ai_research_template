@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING, Any, List
 import mlflow
 from datetime import datetime
 import fnmatch
-
+import os 
+import matplotlib.pyplot as plt
 
 
 if TYPE_CHECKING:
@@ -63,22 +64,51 @@ class EvalHook(HookBase):
         self.trainer.info_storage.add_to_latest_info(result)
 
 class MLFlowLoggerHook(HookBase):
-    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], experiment_name: str | None = None, **kwargs: Any) -> None:
-        super().__init__(trainer)
+    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], experiment_name: str | None = None, dir_save_plot: str = "plots", **kwargs: Any) -> None:
+        super().__init__(trainer)   
         self.logging_fields = logging_fields
-        self.name = experiment_name
+        self.experiment_name = experiment_name
+        self.dir_save_plot = dir_save_plot
+        os.makedirs(self.dir_save_plot, exist_ok=True)
     
     def found_in_logging_fields(self, query: str) -> bool:
         """
         check if the key is in the logging_fields or 
         """
         return any(fnmatch.fnmatch(query, field) for field in self.logging_fields)
+    def _plot_metrics(self) -> None:
+        all_history = self.trainer.info_storage.all_info()
+        
+        metrics_to_plot = [k for k in all_history[0].keys() if self.found_in_logging_fields(k)]
+
+        for metric in metrics_to_plot:
+            try:
+                values = [step_info[metric] for step_info in all_history if metric in step_info]
+                
+                plt.figure(figsize=(10, 6))
+                plt.plot(values, label=metric)
+                plt.title(f"Training History: {metric}")
+                plt.xlabel("Epoch")
+                plt.ylabel("Value")
+                plt.legend()
+                plt.grid(True)
+
+                plot_path = os.path.join(self.dir_save_plot, f"{metric}.png")
+                plt.savefig(plot_path)
+                plt.close()
+
+                mlflow.log_artifact(plot_path)
+                print(f"Saved and logged plot: {plot_path}")
+            except Exception as e:
+                print(f"Could not plot {metric}: {e}")
     def before_train(self) -> None:
-        if self.name is not None:
-            mlflow.set_experiment(self.name)
-            print(f"experiment set to {self.name}")
+        if self.experiment_name is not None:
+            mlflow.set_experiment(self.experiment_name)
+            print(f"experiment set to {self.experiment_name}")
         mlflow.start_run()
     def after_train(self) -> None:
+        if self.dir_save_plot is not None:
+            self._plot_metrics()
         mlflow.end_run()
     def after_train_epoch(self) -> None:
 
