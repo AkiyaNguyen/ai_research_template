@@ -60,8 +60,12 @@ class EvalHook(HookBase):
         self.eval_data_loader = eval_data_loader
     def before_train_epoch(self) -> None:
         pass
+    def _run_validation(self) -> dict[Any, Any]:
+        raise NotImplementedError("EvalHook does not implement _run_validation, please implement it in a subclass")
+    
     def after_train_epoch(self) -> None:
-        result = self.trainer.model.validation_step(self.eval_data_loader) ## dict
+        # result = self.trainer.model.validation_step(self.eval_data_loader) ## dict
+        result = self._run_validation()
         self.trainer.info_storage.add_to_latest_info(result)
 
 class MLFlowLoggerHook(HookBase):

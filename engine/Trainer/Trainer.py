@@ -23,26 +23,82 @@ class InfoStorage:
     def all_info(self) -> typing.List[dict]:
         return self.info_storage
 
+# class Trainer:
+#     def __init__(self, model: extend_module, train_data_loader: DataLoader, optimizer: torch.optim.Optimizer, num_epochs: int) -> None:
+#         self.model = model
+#         self.train_data_loader = train_data_loader
+#         self.optimizer = optimizer
+#         self.hook: typing.List[HookBase] = []
+#         self.info_storage: InfoStorage = InfoStorage()
+#         self.num_epochs = num_epochs
+#         self.current_epoch = 0
+        
+#         self._stop_signal = False
+
+#     def stop_training(self) -> None:
+#         self._stop_signal = True
+
+#     def _register_hook(self, hook: HookBase) -> None: 
+#         self.hook.append(hook)
+
+#     def train(self) -> None:
+#         self.model.train()
+        
+#         for hook in self.hook:
+#             hook.before_train()
+
+#         start_epoch = self.current_epoch
+#         for _ in tqdm(range(start_epoch, self.num_epochs)):
+#             self.info_storage.add_empty_info()
+              
+#             for hook in self.hook:
+#                 hook.before_train_epoch()
+
+#             self.run_step_()
+
+#             for hook in self.hook:
+#                 hook.after_train_epoch()
+
+#             if self._stop_signal:
+#                 break
+
+#             self.current_epoch += 1
+            
+#         for hook in self.hook:
+#             hook.after_train()
+            
+#     def run_step_(self) -> None:
+#         for batch in self.train_data_loader:
+#             self.optimizer.zero_grad()
+#             loss_dict = self.model.compute_loss(batch)
+#             loss_dict['loss'].backward()
+#             self.optimizer.step()
+#             ## add to info storage
+#             self.info_storage.add_to_latest_info(loss_dict)
+
+## rewrite Trainer in an abstract way only
 class Trainer:
-    def __init__(self, model: extend_module, train_data_loader: DataLoader, optimizer: torch.optim.Optimizer, num_epochs: int) -> None:
-        self.model = model
-        self.train_data_loader = train_data_loader
-        self.optimizer = optimizer
+    def __init__(self, num_epochs: int, **kwargs) -> None:
+        self.num_epochs = num_epochs
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+        self.current_epoch = 0
+        self._stop_signal = False
         self.hook: typing.List[HookBase] = []
         self.info_storage: InfoStorage = InfoStorage()
-        self.num_epochs = num_epochs
-        self.current_epoch = 0
-        
-        self._stop_signal = False
 
     def stop_training(self) -> None:
         self._stop_signal = True
-
     def _register_hook(self, hook: HookBase) -> None: 
         self.hook.append(hook)
-
+    def _add_info(self, info: dict) -> None:
+        self.info_storage.add_to_latest_info(info)
+    
+    def _start_train_mode(self) -> None:
+        raise NotImplementedError("Subclass must implement this method")
     def train(self) -> None:
-        self.model.train()
+        self._start_train_mode()
         
         for hook in self.hook:
             hook.before_train()
@@ -68,10 +124,6 @@ class Trainer:
             hook.after_train()
             
     def run_step_(self) -> None:
-        for batch in self.train_data_loader:
-            self.optimizer.zero_grad()
-            loss_dict = self.model.compute_loss(batch)
-            loss_dict['loss'].backward()
-            self.optimizer.step()
-            ## add to info storage
-            self.info_storage.add_to_latest_info(loss_dict)
+        raise NotImplementedError("Subclass must implement this method")
+
+        

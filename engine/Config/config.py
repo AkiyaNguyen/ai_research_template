@@ -7,6 +7,9 @@ class Config:
         yaml_cfg = OmegaConf.load(config_file)
         cli_cfg = OmegaConf.from_cli()
         self.config = OmegaConf.merge(yaml_cfg, cli_cfg)
+        print("--- Current Configuration ---")
+        print(OmegaConf.to_yaml(self.config))
+        print("----------------------------")
         ## change to read-only mode
         OmegaConf.set_readonly(self.config, True)
 
