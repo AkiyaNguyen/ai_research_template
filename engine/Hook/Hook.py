@@ -1,6 +1,7 @@
 
 
 from __future__ import annotations
+from mlflow import data
 from torch.utils.data import DataLoader 
 import json
 from typing import TYPE_CHECKING, Any, List
@@ -53,8 +54,12 @@ class LoggerHook(HookBase):
         pass
     
     def after_train(self) -> None:
+        print("\n--- Training Results ---")
+        data = self.trainer.info_storage.all_info()
+        print(json.dumps(data, indent=4))
+
         with open(self.logger_file, "w") as f:
-            json.dump(self.trainer.info_storage.all_info(), f, indent=4)
+            json.dump(data, f, indent=4)
 
 class EvalHook(HookBase):
     def __init__(self, trainer: Trainer, eval_data_loader: DataLoader, **kwargs: Any) -> None:
