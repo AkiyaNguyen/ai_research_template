@@ -36,6 +36,8 @@ class LoggerHook(HookBase):
         self.logger_file = kwargs['logger_file']
         if self.logger_file is None:
             raise ValueError("Logger file is not set")
+        # makedirs for the dir of the logger_file
+        os.makedirs(os.path.dirname(self.logger_file), exist_ok=True)
     def before_train_epoch(self) -> None:
         # self.trainer.info_storage.add_empty_info()
 
