@@ -3,9 +3,12 @@ from omegaconf import OmegaConf, DictConfig
 import logging
 
 class Config:
-    def __init__(self, config_file: str = 'detail_config/simple_MNIST_training.yaml'):
+    def __init__(self, config_file: str = 'detail_config/simple_MNIST_training.yaml',
+            cli_overrides=None):
         yaml_cfg = OmegaConf.load(config_file)
-        cli_cfg = OmegaConf.from_cli()
+        if cli_overrides is not None:
+            cli_cfg = OmegaConf.from_cli(cli_overrides)
+            
         self.config = OmegaConf.merge(yaml_cfg, cli_cfg)
         print("--- Current Configuration ---")
         print(OmegaConf.to_yaml(self.config))
