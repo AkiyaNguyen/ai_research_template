@@ -51,15 +51,15 @@ class LoggerHook(HookBase):
         })
 
     def after_train_epoch(self) -> None:
-        pass
-    
-    def after_train(self) -> None:
-        print("\n--- Training Results ---")
-        data = self.trainer.info_storage.all_info()
+        
+        print("\n--- Training Result at current epoch ---")
+        data = self.trainer.info_storage.latest_info()
         print(json.dumps(data, indent=4))
 
-        with open(self.logger_file, "w") as f:
-            json.dump(data, f, indent=4)
+    def after_train(self) -> None:
+        all_data = self.trainer.info_storage.all_info()
+        with open(self.logger_file, 'w') as f:
+            json.dump(all_data, f, indent=4)
 
 class EvalHook(HookBase):
     def __init__(self, trainer: Trainer, eval_data_loader: DataLoader, **kwargs: Any) -> None:
