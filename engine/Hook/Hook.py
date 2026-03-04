@@ -76,13 +76,14 @@ class EvalHook(HookBase):
         self.trainer.info_storage.add_to_latest_info(result)
 
 class MLFlowLoggerHook(HookBase):
-    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], dagshub_repo_owner: str | None = None, dagshub_repo_name: str | None = None, experiment_name: str | None = None, dir_save_plot: str = "plots", **kwargs: Any) -> None:
+    def __init__(self, trainer: Trainer, dagshub_token: str = '', logging_fields: List[str] = [], dagshub_repo_owner: str | None = None, dagshub_repo_name: str | None = None, experiment_name: str | None = None, dir_save_plot: str = "plots", **kwargs: Any) -> None:
         super().__init__(trainer)   
         self.logging_fields = logging_fields
         self.dagshub_repo_owner = dagshub_repo_owner
         self.dagshub_repo_name = dagshub_repo_name
         self.experiment_name = experiment_name
         self.dir_save_plot = dir_save_plot
+        self.dagshub_token = dagshub_token
         os.makedirs(self.dir_save_plot, exist_ok=True)
     
     def found_in_logging_fields(self, query: str) -> bool:
@@ -118,6 +119,7 @@ class MLFlowLoggerHook(HookBase):
     def before_train(self) -> None:
         if self.dagshub_repo_owner is None or self.dagshub_repo_name is None:
             raise ValueError("DagsHub repo owner and name must be provided for MLFlowLoggerHook")
+        os.environ['DAGSHUB_USER_TOKEN'] = self.dagshub_token
         dagshub.init(repo_owner=self.dagshub_repo_owner, repo_name=self.dagshub_repo_name, mlflow=True)
         if self.experiment_name is not None:
             mlflow.set_experiment(self.experiment_name)
