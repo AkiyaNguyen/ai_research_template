@@ -12,9 +12,6 @@ class Config:
             cli_cfg = OmegaConf.create()
             
         self.config = OmegaConf.merge(yaml_cfg, cli_cfg)
-        print("--- Current Configuration ---")
-        print(OmegaConf.to_yaml(self.config))
-        print("----------------------------")
         ## change to read-only mode
         OmegaConf.set_readonly(self.config, True)
 
@@ -36,3 +33,6 @@ class Config:
             logging.error(f"Failed to update config key '{key}': {e}")
         finally:
             OmegaConf.set_readonly(self.config, True)
+
+    def all_config(self):
+        return OmegaConf.to_yaml(self.config)

@@ -119,7 +119,9 @@ class MLFlowLoggerHook(HookBase):
     def before_train(self) -> None:
         if self.dagshub_repo_owner is None or self.dagshub_repo_name is None:
             raise ValueError("DagsHub repo owner and name must be provided for MLFlowLoggerHook")
-        os.environ['DAGSHUB_USER_TOKEN'] = self.dagshub_token
+        import dagshub.auth
+        dagshub.auth.add_app_token(self.dagshub_token)
+        
         dagshub.init(repo_owner=self.dagshub_repo_owner, repo_name=self.dagshub_repo_name, mlflow=True)
         if self.experiment_name is not None:
             mlflow.set_experiment(self.experiment_name)
