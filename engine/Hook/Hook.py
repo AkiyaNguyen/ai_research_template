@@ -11,7 +11,7 @@ import fnmatch
 import os 
 import matplotlib.pyplot as plt
 import typing
-
+import dagshub
 
 if TYPE_CHECKING:
     from engine.Trainer import Trainer
@@ -76,9 +76,10 @@ class EvalHook(HookBase):
         self.trainer.info_storage.add_to_latest_info(result)
 
 class MLFlowLoggerHook(HookBase):
-    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], experiment_name: str | None = None, dir_save_plot: str = "plots", **kwargs: Any) -> None:
+    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], dagshub_repo_name: str | None = None, experiment_name: str | None = None, dir_save_plot: str = "plots", **kwargs: Any) -> None:
         super().__init__(trainer)   
         self.logging_fields = logging_fields
+        self.dagshub_repo_name = dagshub_repo_name
         self.experiment_name = experiment_name
         self.dir_save_plot = dir_save_plot
         os.makedirs(self.dir_save_plot, exist_ok=True)
@@ -114,6 +115,8 @@ class MLFlowLoggerHook(HookBase):
             except Exception as e:
                 print(f"Could not plot {metric}: {e}")
     def before_train(self) -> None:
+        repo_name = self.dagshub_repo_name if self.dagshub_repo_name is not None else ""
+        dagshub.init(repo_owner='AkiyaNguyen', repo_name=repo_name, mlflow=True)
         if self.experiment_name is not None:
             mlflow.set_experiment(self.experiment_name)
             print(f"experiment set to {self.experiment_name}")

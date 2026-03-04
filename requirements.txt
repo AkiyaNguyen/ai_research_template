@@ -98,3 +98,4 @@ torch
 mlflow
 matplotlib
 tqdm
+dagshub
