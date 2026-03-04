@@ -12,10 +12,11 @@ import os
 import matplotlib.pyplot as plt
 import typing
 import dagshub
+from typing import Optional
 
 if TYPE_CHECKING:
     from engine.Trainer import Trainer
-    
+    from engine.Config import Config
 
 class HookBase:
     def __init__(self, trainer: Trainer) -> None:
@@ -76,14 +77,16 @@ class EvalHook(HookBase):
         self.trainer.info_storage.add_to_latest_info(result)
 
 class MLFlowLoggerHook(HookBase):
-    def __init__(self, trainer: Trainer, dagshub_token: str = '', logging_fields: List[str] = [], dagshub_repo_owner: str | None = None, dagshub_repo_name: str | None = None, experiment_name: str | None = None, dir_save_plot: str = "plots", **kwargs: Any) -> None:
+    def __init__(self, trainer: Trainer, logging_fields: List[str] = [], dagshub_repo_owner: str | None = None, dagshub_repo_name: str | None = None, experiment_name: str | None = None, dir_save_plot: str = "plots",
+                 cfg: Optional[Config] = None, run_name: str = '', **kwargs: Any) -> None:
         super().__init__(trainer)   
         self.logging_fields = logging_fields
         self.dagshub_repo_owner = dagshub_repo_owner
         self.dagshub_repo_name = dagshub_repo_name
         self.experiment_name = experiment_name
         self.dir_save_plot = dir_save_plot
-        self.dagshub_token = dagshub_token
+        self.cfg = cfg
+        self.run_name = run_name
         os.makedirs(self.dir_save_plot, exist_ok=True)
     
     def found_in_logging_fields(self, query: str) -> bool:
@@ -119,14 +122,29 @@ class MLFlowLoggerHook(HookBase):
     def before_train(self) -> None:
         if self.dagshub_repo_owner is None or self.dagshub_repo_name is None:
             raise ValueError("DagsHub repo owner and name must be provided for MLFlowLoggerHook")
-        import dagshub.auth
-        dagshub.auth.add_app_token(self.dagshub_token)
         
         dagshub.init(repo_owner=self.dagshub_repo_owner, repo_name=self.dagshub_repo_name, mlflow=True)
         if self.experiment_name is not None:
             mlflow.set_experiment(self.experiment_name)
             print(f"experiment set to {self.experiment_name}")
-        mlflow.start_run()
+
+        mlflow.start_run(run_name=self.run_name if self.run_name else None)
+
+        ## save cfg to dagshub for easy trace later
+        if self.cfg is not None:
+            import json, tempfile
+            config_dict = self.cfg.all_config()
+            
+            with tempfile.NamedTemporaryFile(
+                mode='w', suffix='.json', prefix='config_', delete=False
+            ) as f:
+                json.dump(config_dict, f, indent=2, default=str)
+                tmp_path = f.name
+            
+            mlflow.log_artifact(tmp_path, artifact_path="config")
+            os.unlink(tmp_path)
+            print(f"Config logged to DagsHub under artifacts/config/")
+
     def after_train(self) -> None:
         if self.dir_save_plot is not None:
             self._plot_metrics()
@@ -167,3 +185,13 @@ class EarlyStoppingHook(HookBase):
         if self.counter >= self.patience:
             print(f"after training for {self.trainer.current_epoch + 1} epochs")
             print("The training procedure is stopped by EarlyStoppingHook")
+
+class StopTrainAtEpoch(HookBase):
+    def __init__(self, trainer: Trainer, stop_at_epoch: int) -> None:
+        super().__init__(trainer)
+        self.stop_at_epoch = stop_at_epoch
+
+    def after_train_epoch(self) -> None:
+        if self.trainer.current_epoch + 1 >= self.stop_at_epoch:
+            self.trainer.stop_training()
+            print(f"Training stopped at epoch {self.stop_at_epoch}")
