@@ -8,6 +8,8 @@ class Config:
         yaml_cfg = OmegaConf.load(config_file)
         if cli_overrides is not None:
             cli_cfg = OmegaConf.from_cli(cli_overrides)
+        else:
+            cli_cfg = OmegaConf.create()
             
         self.config = OmegaConf.merge(yaml_cfg, cli_cfg)
         print("--- Current Configuration ---")
@@ -25,3 +27,12 @@ class Config:
             logging.warning(f"Key '{key}' not found, falling back to {fallback}")
             return fallback
         return val
+    
+    def set(self, key: str, value):
+        OmegaConf.set_readonly(self.config, False)
+        try:
+            OmegaConf.update(self.config, key, value, merge=True)
+        except Exception as e:
+            logging.error(f"Failed to update config key '{key}': {e}")
+        finally:
+            OmegaConf.set_readonly(self.config, True)
