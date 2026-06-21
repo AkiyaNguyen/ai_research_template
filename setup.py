@@ -9,7 +9,8 @@ def parse_requirements(filename):
     return [line for line in lines if len(line) > 0 and not line.startswith('#')]
 
 setup(
-    name='dl_template',
+    name='ART',
+    version='0.1.0',
     packages=find_packages(),
     install_requires=parse_requirements('requirements.txt'),
     author='Akiya Nguyen',

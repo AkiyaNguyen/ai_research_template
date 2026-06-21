@@ -1,9 +1,0 @@
-# Minimal packages for engine/ (direct dependencies only)
-# Format: same as typical requirements.txt
-
-PyYAML
-omegaconf
-torch
-mlflow
-matplotlib
-tqdm
